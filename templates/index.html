@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Relatórios - Seleção de Turno</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="logo">
+                <i class="fas fa-clipboard-list"></i>
+                <h1>Sistema de Relatórios</h1>
+            </div>
+            <p class="subtitle">Relatórios de Atividades por Turnos</p>
+        </header>
+
+        <main class="main-content">
+            <div class="selection-card">
+                <div class="step-indicator">
+                    <div class="step active" data-step="1">
+                        <i class="fas fa-clock"></i>
+                        <span>Turno</span>
+                    </div>
+                    <div class="step" data-step="2">
+                        <i class="fas fa-user"></i>
+                        <span>Nome</span>
+                    </div>
+                    <div class="step" data-step="3">
+                        <i class="fas fa-edit"></i>
+                        <span>Relatório</span>
+                    </div>
+                </div>
+
+                <!-- Seleção de Turno -->
+                <div class="form-step active" id="step-1">
+                    <h2>Qual seu turno?</h2>
+                    <div class="turno-options">
+                        <button class="turno-btn" data-turno="1">
+                            <div class="turno-icon">
+                                <i class="fas fa-sun"></i>
+                            </div>
+                            <div class="turno-info">
+                                <h3>1º Turno</h3>
+                                <p>06:00 - 14:20</p>
+                            </div>
+                        </button>
+                        <button class="turno-btn" data-turno="2">
+                            <div class="turno-icon">
+                                <i class="fas fa-cloud-sun"></i>
+                            </div>
+                            <div class="turno-info">
+                                <h3>2º Turno</h3>
+                                <p>14:20 - 22:00</p>
+                            </div>
+                        </button>
+                        <button class="turno-btn" data-turno="3">
+                            <div class="turno-icon">
+                                <i class="fas fa-moon"></i>
+                            </div>
+                            <div class="turno-info">
+                                <h3>3º Turno</h3>
+                                <p>22:00 - 06:00</p>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Nome do Usuário -->
+                <div class="form-step" id="step-2">
+                    <h2>Qual seu nome?</h2>
+                    <div class="input-group">
+                        <input type="text" id="usuario" placeholder="Digite seu nome completo..." maxlength="100">
+                        <button class="btn-next" id="btn-nome">
+                            <span>Continuar</span>
+                            <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Formulário de Relatório -->
+                <div class="form-step" id="step-3">
+                    <h2>Criar Relatório</h2>
+                    <form id="report-form" enctype="multipart/form-data">
+                        <input type="hidden" id="turno-hidden" name="turno">
+                        <input type="hidden" id="usuario-hidden" name="usuario">
+                        
+                        <div class="form-group">
+                            <label for="texto">
+                                <i class="fas fa-comment-alt"></i>
+                                Descrição da Atividade
+                            </label>
+                            <textarea 
+                                id="texto" 
+                                name="texto" 
+                                placeholder="Cole aqui o texto do WhatsApp ou digite sua atividade..."
+                                rows="6"
+                                required
+                            ></textarea>
+                            <small>Você pode colar diretamente textos copiados do WhatsApp</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="foto">
+                                <i class="fas fa-camera"></i>
+                                Foto (Opcional)
+                            </label>
+                            <div class="file-upload">
+                                <input type="file" id="foto" name="foto" accept="image/*">
+                                <div class="file-upload-content">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                    <p>Clique para selecionar uma foto ou arraste aqui</p>
+                                    <small>JPG, PNG, GIF até 10MB</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="button" class="btn-back" id="btn-voltar">
+                                <i class="fas fa-arrow-left"></i>
+                                Voltar
+                            </button>
+                            <button type="submit" class="btn-submit">
+                                <i class="fas fa-paper-plane"></i>
+                                Enviar Relatório
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Link para ver relatórios -->
+            <div class="view-reports">
+                <a href="/reports" class="btn-secondary">
+                    <i class="fas fa-list"></i>
+                    Ver Todos os Relatórios
+                </a>
+            </div>
+        </main>
+    </div>
+
+    <!-- Loading overlay -->
+    <div class="loading-overlay" id="loading">
+        <div class="spinner"></div>
+        <p>Enviando relatório...</p>
+    </div>
+
+    <!-- Success modal -->
+    <div class="modal-overlay" id="success-modal">
+        <div class="modal">
+            <div class="modal-icon success">
+                <i class="fas fa-check"></i>
+            </div>
+            <h3>Relatório Enviado!</h3>
+            <p>Seu relatório foi registrado com sucesso.</p>
+            <div class="modal-actions">
+                <button class="btn-primary" onclick="resetForm()">Novo Relatório</button>
+                <a href="/reports" class="btn-secondary">Ver Relatórios</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/app.js"></script>
+</body>
+</html>

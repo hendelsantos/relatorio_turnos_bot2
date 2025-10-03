@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relatórios de Atividades - Timeline</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/reports.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-clipboard-list"></i>
+                    <h1>Relatórios de Atividades</h1>
+                </div>
+                <div class="header-actions">
+                    <a href="/" class="btn-new-report">
+                        <i class="fas fa-plus"></i>
+                        Novo Relatório
+                    </a>
+                </div>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <!-- Filtros -->
+            <div class="filters-card">
+                <div class="filters-header">
+                    <h3><i class="fas fa-filter"></i> Filtros</h3>
+                </div>
+                <div class="filters-content">
+                    <div class="filter-group">
+                        <label>Turno:</label>
+                        <div class="filter-buttons">
+                            <button class="filter-btn active" data-turno="">
+                                <i class="fas fa-list"></i>
+                                Todos
+                            </button>
+                            <button class="filter-btn" data-turno="1">
+                                <i class="fas fa-sun"></i>
+                                1º Turno
+                            </button>
+                            <button class="filter-btn" data-turno="2">
+                                <i class="fas fa-cloud-sun"></i>
+                                2º Turno
+                            </button>
+                            <button class="filter-btn" data-turno="3">
+                                <i class="fas fa-moon"></i>
+                                3º Turno
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Timeline de Relatórios -->
+            <div class="timeline-container">
+                <div class="timeline-header">
+                    <h2 id="timeline-title">
+                        <i class="fas fa-clock"></i>
+                        Timeline de Atividades
+                    </h2>
+                    <div class="timeline-stats">
+                        <span id="reports-count">Carregando...</span>
+                    </div>
+                </div>
+
+                <div class="timeline" id="timeline">
+                    <!-- Relatórios serão carregados aqui via JavaScript -->
+                </div>
+
+                <!-- Loading state -->
+                <div class="timeline-loading" id="timeline-loading">
+                    <div class="spinner"></div>
+                    <p>Carregando relatórios...</p>
+                </div>
+
+                <!-- Empty state -->
+                <div class="timeline-empty" id="timeline-empty" style="display: none;">
+                    <div class="empty-icon">
+                        <i class="fas fa-clipboard"></i>
+                    </div>
+                    <h3>Nenhum relatório encontrado</h3>
+                    <p>Seja o primeiro a criar um relatório!</p>
+                    <a href="/" class="btn-primary">
+                        <i class="fas fa-plus"></i>
+                        Criar Primeiro Relatório
+                    </a>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal para visualizar foto -->
+    <div class="modal-overlay" id="photo-modal">
+        <div class="modal-photo">
+            <button class="modal-close" onclick="closePhotoModal()">
+                <i class="fas fa-times"></i>
+            </button>
+            <img id="modal-photo-img" src="" alt="Foto do relatório">
+        </div>
+    </div>
+
+    <script src="/static/js/reports.js"></script>
+</body>
+</html>

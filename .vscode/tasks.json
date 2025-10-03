@@ -1,0 +1,13 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Executar Sistema de Relatórios",
+			"type": "shell",
+			"command": "\"/home/hendel/Documentos/MPA T003/Projeto_bot2/.venv/bin/python\" run.py",
+			"isBackground": true,
+			"problemMatcher": [],
+			"group": "build"
+		}
+	]
+}
