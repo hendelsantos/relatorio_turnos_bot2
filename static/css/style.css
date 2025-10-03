@@ -742,3 +742,37 @@ textarea:focus {
         display: none;
     }
 }
+
+/* ===== FOOTER ===== */
+.footer {
+    background: var(--gray-800);
+    color: var(--white);
+    padding: var(--spacing-6) 0;
+    margin-top: var(--spacing-12);
+    text-align: center;
+    border-top: 1px solid var(--gray-700);
+}
+
+.footer-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 var(--spacing-6);
+}
+
+.footer p {
+    font-size: var(--font-size-sm);
+    color: var(--gray-300);
+    margin: 0;
+    font-weight: 500;
+}
+
+@media (max-width: 768px) {
+    .footer {
+        padding: var(--spacing-4) 0;
+        margin-top: var(--spacing-8);
+    }
+    
+    .footer-content {
+        padding: 0 var(--spacing-4);
+    }
+}
