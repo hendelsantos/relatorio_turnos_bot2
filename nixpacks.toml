@@ -1,0 +1,14 @@
+[phases.setup]
+nixPkgs = ['python312', 'postgresql']
+
+[phases.install]
+cmds = [
+    'pip install --upgrade pip',
+    'pip install -r requirements.txt'
+]
+
+[phases.build]
+cmds = ['python -c "print(\'Build completed\')"']
+
+[start]
+cmd = 'python start.py'

@@ -41,18 +41,32 @@ Sistema web moderno para relatórios de atividades divididos por turnos de traba
 
 ### 1. Clone o repositório
 ```bash
-git clone <repository-url>
-cd Projeto_bot2
+git clone https://github.com/hendelsantos/relatorio_turnos_bot2.git
+cd relatorio_turnos_bot2
 ```
 
 ### 2. Instale as dependências
+
+#### Para desenvolvimento local (recomendado):
+```bash
+pip install -r requirements-dev.txt
+```
+
+#### Para produção com PostgreSQL:
 ```bash
 pip install -r requirements.txt
 ```
 
 ### 3. Execute a aplicação
+
+#### Desenvolvimento:
 ```bash
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+python run.py
+```
+
+#### Produção:
+```bash
+python start.py
 ```
 
 ### 4. Acesse a aplicação

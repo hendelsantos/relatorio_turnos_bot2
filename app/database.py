@@ -16,7 +16,13 @@ if DATABASE_URL.startswith("sqlite"):
     engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
 else:
     # PostgreSQL ou outros bancos
-    engine = create_engine(DATABASE_URL, pool_pre_ping=True)
+    try:
+        engine = create_engine(DATABASE_URL, pool_pre_ping=True)
+    except Exception as e:
+        print(f"⚠️  Erro ao conectar PostgreSQL: {e}")
+        print("🔄 Fallback para SQLite...")
+        DATABASE_URL = "sqlite:///./reports.db"
+        engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()

@@ -9,9 +9,13 @@ from app.models import models
 
 def init_db():
     """Inicializa o banco de dados"""
-    print("🔄 Inicializando banco de dados...")
-    models.Base.metadata.create_all(bind=engine)
-    print("✅ Banco de dados inicializado!")
+    try:
+        print("🔄 Inicializando banco de dados...")
+        models.Base.metadata.create_all(bind=engine)
+        print("✅ Banco de dados inicializado!")
+    except Exception as e:
+        print(f"⚠️  Erro ao inicializar banco: {e}")
+        print("🔄 Tentando continuar...")
 
 def main():
     """Função principal"""
