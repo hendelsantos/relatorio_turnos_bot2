@@ -100,6 +100,42 @@ class ReportsApp {
         const formattedDate = this.formatDate(date);
         const timeAgo = this.getTimeAgo(date);
         
+        // Criar galeria de fotos se existirem
+        let photosHtml = '';
+        if (report.fotos_urls && report.fotos_urls.length > 0) {
+            if (report.fotos_urls.length === 1) {
+                // Uma foto - mostrar grande
+                photosHtml = `
+                    <div class="report-photo single">
+                        <img src="${report.fotos_urls[0]}" 
+                             alt="Foto do relatório" 
+                             onclick="showPhotoModal('${report.fotos_urls[0]}')"
+                             loading="lazy">
+                    </div>
+                `;
+            } else {
+                // Múltiplas fotos - mostrar em grid
+                const photosGrid = report.fotos_urls.map(url => `
+                    <img src="${url}" 
+                         alt="Foto do relatório" 
+                         onclick="showPhotoModal('${url}')"
+                         loading="lazy">
+                `).join('');
+                
+                photosHtml = `
+                    <div class="report-photos-grid">
+                        <div class="photos-grid ${report.fotos_urls.length > 4 ? 'many-photos' : ''}">
+                            ${photosGrid}
+                        </div>
+                        <div class="photos-count-badge">
+                            <i class="fas fa-images"></i>
+                            ${report.fotos_urls.length} foto${report.fotos_urls.length > 1 ? 's' : ''}
+                        </div>
+                    </div>
+                `;
+            }
+        }
+        
         return `
             <div class="report-card" data-id="${report.id}">
                 <div class="report-header">
@@ -124,14 +160,7 @@ class ReportsApp {
                 </div>
                 <div class="report-content">
                     <div class="report-text">${this.escapeHtml(report.texto)}</div>
-                    ${report.foto_url ? `
-                        <div class="report-photo">
-                            <img src="${report.foto_url}" 
-                                 alt="Foto do relatório" 
-                                 onclick="showPhotoModal('${report.foto_url}')"
-                                 loading="lazy">
-                        </div>
-                    ` : ''}
+                    ${photosHtml}
                 </div>
             </div>
         `;

@@ -48,30 +48,37 @@ async def create_report(
     turno: int = Form(...),
     usuario: str = Form(...),
     texto: str = Form(...),
-    foto: Optional[UploadFile] = File(None),
+    fotos: List[UploadFile] = File(None),
     db: Session = Depends(get_db)
 ):
-    """Criar novo relatório"""
+    """Criar novo relatório com múltiplas fotos"""
     
-    foto_url = None
-    if foto and foto.filename:
-        # Gerar nome único para a foto
-        file_extension = foto.filename.split(".")[-1]
-        file_name = f"{uuid.uuid4()}.{file_extension}"
-        file_path = f"static/uploads/{file_name}"
-        
-        # Salvar arquivo
-        with open(file_path, "wb") as buffer:
-            shutil.copyfileobj(foto.file, buffer)
-        
-        foto_url = f"/static/uploads/{file_name}"
+    fotos_urls = []
+    
+    if fotos:
+        for foto in fotos:
+            if foto.filename:
+                # Validar tipo de arquivo
+                if not foto.content_type.startswith('image/'):
+                    continue
+                
+                # Gerar nome único para a foto
+                file_extension = foto.filename.split(".")[-1] if "." in foto.filename else "jpg"
+                file_name = f"{uuid.uuid4()}.{file_extension}"
+                file_path = f"static/uploads/{file_name}"
+                
+                # Salvar arquivo
+                with open(file_path, "wb") as buffer:
+                    shutil.copyfileobj(foto.file, buffer)
+                
+                fotos_urls.append(f"/static/uploads/{file_name}")
     
     # Criar relatório no banco
     report = Report(
         turno=turno,
         usuario=usuario,
         texto=texto,
-        foto_url=foto_url,
+        fotos_urls=",".join(fotos_urls) if fotos_urls else None,
         data_criacao=datetime.now()
     )
     
@@ -82,7 +89,8 @@ async def create_report(
     return JSONResponse({
         "success": True,
         "message": "Relatório criado com sucesso!",
-        "report_id": report.id
+        "report_id": report.id,
+        "fotos_count": len(fotos_urls)
     })
 
 @app.get("/api/reports")
@@ -101,7 +109,7 @@ async def get_reports(turno: Optional[int] = None, db: Session = Depends(get_db)
             "turno": report.turno,
             "usuario": report.usuario,
             "texto": report.texto,
-            "foto_url": report.foto_url,
+            "fotos_urls": report.fotos_urls.split(",") if report.fotos_urls else [],
             "data_criacao": report.data_criacao.isoformat(),
             "turno_nome": f"{report.turno}º Turno"
         }
@@ -121,14 +129,16 @@ async def delete_report(report_id: int, db: Session = Depends(get_db)):
             content={"success": False, "message": "Relatório não encontrado"}
         )
     
-    # Remover arquivo de foto se existir
-    if report.foto_url:
-        try:
-            file_path = report.foto_url.lstrip("/")
-            if os.path.exists(file_path):
-                os.remove(file_path)
-        except Exception as e:
-            print(f"Erro ao remover arquivo: {e}")
+    # Remover arquivos de fotos se existirem
+    if report.fotos_urls:
+        foto_urls = report.fotos_urls.split(",")
+        for foto_url in foto_urls:
+            try:
+                file_path = foto_url.lstrip("/")
+                if os.path.exists(file_path):
+                    os.remove(file_path)
+            except Exception as e:
+                print(f"Erro ao remover arquivo: {e}")
     
     # Excluir do banco
     db.delete(report)

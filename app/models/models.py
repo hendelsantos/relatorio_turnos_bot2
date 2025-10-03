@@ -10,7 +10,7 @@ class Report(Base):
     turno = Column(Integer, nullable=False)  # 1, 2 ou 3
     usuario = Column(String(100), nullable=False)
     texto = Column(Text, nullable=False)
-    foto_url = Column(String(500), nullable=True)
+    fotos_urls = Column(Text, nullable=True)  # JSON string com array de URLs
     data_criacao = Column(DateTime, default=func.now())
     
     def __repr__(self):

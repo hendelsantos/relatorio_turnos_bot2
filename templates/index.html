@@ -104,18 +104,23 @@
                         </div>
 
                         <div class="form-group">
-                            <label for="foto">
+                            <label for="fotos">
                                 <i class="fas fa-camera"></i>
-                                Foto (Opcional)
+                                Fotos (Múltiplas)
                             </label>
-                            <div class="file-upload">
-                                <input type="file" id="foto" name="foto" accept="image/*">
+                            <div class="file-upload-area">
+                                <input type="file" id="fotos" name="fotos" accept="image/*" multiple>
                                 <div class="file-upload-content">
                                     <i class="fas fa-cloud-upload-alt"></i>
-                                    <p>Clique para selecionar uma foto ou arraste aqui</p>
-                                    <small>JPG, PNG, GIF até 10MB</small>
+                                    <p>Clique para selecionar fotos, arraste aqui ou <strong>cole (Ctrl+V)</strong></p>
+                                    <small>JPG, PNG, GIF até 10MB cada • Múltiplas fotos permitidas</small>
+                                </div>
+                                <div class="paste-hint">
+                                    <i class="fas fa-clipboard"></i>
+                                    <span>Cole imagens copiadas do WhatsApp aqui!</span>
                                 </div>
                             </div>
+                            <div class="photos-preview" id="photos-preview"></div>
                         </div>
 
                         <div class="form-actions">

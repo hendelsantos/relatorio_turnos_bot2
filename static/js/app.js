@@ -4,6 +4,7 @@ class ReportApp {
         this.currentStep = 1;
         this.selectedTurno = null;
         this.userName = '';
+        this.selectedFiles = [];
         
         this.init();
     }
@@ -11,6 +12,8 @@ class ReportApp {
     init() {
         this.setupEventListeners();
         this.updateStepIndicator();
+        this.setupFileHandling();
+        this.setupPasteHandler();
     }
     
     setupEventListeners() {
@@ -48,11 +51,49 @@ class ReportApp {
         if (reportForm) {
             reportForm.addEventListener('submit', (e) => this.submitReport(e));
         }
+    }
+    
+    setupFileHandling() {
+        const fotosInput = document.getElementById('fotos');
+        const fileUploadArea = document.querySelector('.file-upload-area');
         
-        // Upload de arquivo
-        const fotoInput = document.getElementById('foto');
-        if (fotoInput) {
-            fotoInput.addEventListener('change', () => this.handleFileUpload());
+        if (fotosInput && fileUploadArea) {
+            // Change event para input file
+            fotosInput.addEventListener('change', () => this.handleFileSelect());
+            
+            // Drag and drop
+            fileUploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                fileUploadArea.classList.add('dragover');
+            });
+            
+            fileUploadArea.addEventListener('dragleave', () => {
+                fileUploadArea.classList.remove('dragover');
+            });
+            
+            fileUploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                fileUploadArea.classList.remove('dragover');
+                this.handleFileDrop(e);
+            });
+        }
+    }
+    
+    setupPasteHandler() {
+        // Event listener global para paste
+        document.addEventListener('paste', (e) => {
+            // Só funciona quando estamos no step 3 (formulário)
+            if (this.currentStep === 3) {
+                this.handlePaste(e);
+            }
+        });
+        
+        // Visual feedback quando área está focada
+        const fileUploadArea = document.querySelector('.file-upload-area');
+        if (fileUploadArea) {
+            fileUploadArea.addEventListener('click', () => {
+                fileUploadArea.focus();
+            });
         }
     }
     
@@ -168,52 +209,159 @@ class ReportApp {
         }, 100);
     }
     
-    handleFileUpload() {
-        const fotoInput = document.getElementById('foto');
-        const fileUpload = document.querySelector('.file-upload');
+    handleFileSelect() {
+        const fotosInput = document.getElementById('fotos');
+        const files = Array.from(fotosInput.files);
+        this.addFiles(files);
+    }
+    
+    handleFileDrop(e) {
+        const files = Array.from(e.dataTransfer.files);
+        const imageFiles = files.filter(file => file.type.startsWith('image/'));
+        this.addFiles(imageFiles);
+    }
+    
+    handlePaste(e) {
+        const items = Array.from(e.clipboardData.items);
+        const imageItems = items.filter(item => item.type.startsWith('image/'));
         
-        if (fotoInput.files.length > 0) {
-            const file = fotoInput.files[0];
+        if (imageItems.length > 0) {
+            e.preventDefault();
             
-            // Valida tipo de arquivo
+            // Visual feedback
+            const fileUploadArea = document.querySelector('.file-upload-area');
+            fileUploadArea.classList.add('pasting');
+            setTimeout(() => fileUploadArea.classList.remove('pasting'), 1000);
+            
+            // Processar imagens
+            imageItems.forEach(item => {
+                const file = item.getAsFile();
+                if (file) {
+                    this.addFiles([file]);
+                }
+            });
+            
+            this.showAlert('Imagem(ns) colada(s) com sucesso!', 'success');
+        }
+    }
+    
+    addFiles(files) {
+        // Validar arquivos
+        const validFiles = files.filter(file => {
+            // Validar tipo
             if (!file.type.startsWith('image/')) {
-                this.showAlert('Por favor, selecione apenas arquivos de imagem.', 'error');
-                fotoInput.value = '';
-                return;
+                this.showAlert(`${file.name} não é uma imagem válida.`, 'error');
+                return false;
             }
             
-            // Valida tamanho (10MB)
+            // Validar tamanho (10MB)
             if (file.size > 10 * 1024 * 1024) {
-                this.showAlert('A imagem deve ter no máximo 10MB.', 'error');
-                fotoInput.value = '';
-                return;
+                this.showAlert(`${file.name} é muito grande. Máximo 10MB.`, 'error');
+                return false;
             }
             
-            fileUpload.classList.add('has-file');
-            const content = fileUpload.querySelector('.file-upload-content');
+            return true;
+        });
+        
+        // Adicionar à lista
+        validFiles.forEach(file => {
+            // Evitar duplicatas (baseado no nome e tamanho)
+            const isDuplicate = this.selectedFiles.some(existingFile => 
+                existingFile.name === file.name && existingFile.size === file.size
+            );
+            
+            if (!isDuplicate) {
+                this.selectedFiles.push(file);
+            }
+        });
+        
+        this.updateFilePreview();
+        this.updateFileUploadStatus();
+    }
+    
+    removeFile(index) {
+        this.selectedFiles.splice(index, 1);
+        this.updateFilePreview();
+        this.updateFileUploadStatus();
+    }
+    
+    updateFilePreview() {
+        const preview = document.getElementById('photos-preview');
+        
+        if (this.selectedFiles.length === 0) {
+            preview.innerHTML = '';
+            return;
+        }
+        
+        preview.innerHTML = this.selectedFiles.map((file, index) => {
+            const url = URL.createObjectURL(file);
+            return `
+                <div class="photo-preview-item">
+                    <img src="${url}" alt="${file.name}" loading="lazy">
+                    <button class="remove-photo" onclick="window.reportApp.removeFile(${index})" title="Remover foto">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `;
+        }).join('');
+    }
+    
+    updateFileUploadStatus() {
+        const fileUploadArea = document.querySelector('.file-upload-area');
+        const content = fileUploadArea.querySelector('.file-upload-content');
+        
+        if (this.selectedFiles.length > 0) {
+            fileUploadArea.classList.add('has-files');
             content.innerHTML = `
                 <i class="fas fa-check-circle"></i>
-                <p><strong>${file.name}</strong></p>
-                <small>Arquivo selecionado com sucesso</small>
+                <p><strong>${this.selectedFiles.length} foto(s) selecionada(s)</strong></p>
+                <small>Clique para adicionar mais ou cole novas imagens</small>
+            `;
+            
+            // Adicionar contador
+            let countElement = fileUploadArea.querySelector('.photos-count');
+            if (!countElement) {
+                countElement = document.createElement('div');
+                countElement.className = 'photos-count';
+                fileUploadArea.appendChild(countElement);
+            }
+            
+            countElement.innerHTML = `
+                <i class="fas fa-images"></i>
+                <span>${this.selectedFiles.length} foto(s) pronta(s) para envio</span>
             `;
         } else {
-            fileUpload.classList.remove('has-file');
-            const content = fileUpload.querySelector('.file-upload-content');
+            fileUploadArea.classList.remove('has-files');
             content.innerHTML = `
                 <i class="fas fa-cloud-upload-alt"></i>
-                <p>Clique para selecionar uma foto ou arraste aqui</p>
-                <small>JPG, PNG, GIF até 10MB</small>
+                <p>Clique para selecionar fotos, arraste aqui ou <strong>cole (Ctrl+V)</strong></p>
+                <small>JPG, PNG, GIF até 10MB cada • Múltiplas fotos permitidas</small>
             `;
+            
+            const countElement = fileUploadArea.querySelector('.photos-count');
+            if (countElement) {
+                countElement.remove();
+            }
         }
     }
     
     async submitReport(e) {
         e.preventDefault();
         
-        const formData = new FormData(e.target);
+        const formData = new FormData();
+        
+        // Adicionar dados do formulário
+        formData.append('turno', this.selectedTurno);
+        formData.append('usuario', this.userName);
+        formData.append('texto', document.getElementById('texto').value.trim());
+        
+        // Adicionar fotos
+        this.selectedFiles.forEach(file => {
+            formData.append('fotos', file);
+        });
         
         // Valida dados obrigatórios
-        if (!formData.get('texto').trim()) {
+        if (!formData.get('texto')) {
             this.showAlert('Por favor, digite a descrição da atividade.', 'error');
             return;
         }
@@ -229,7 +377,10 @@ class ReportApp {
             const result = await response.json();
             
             if (response.ok && result.success) {
-                this.showSuccess();
+                const message = result.fotos_count > 0 
+                    ? `Relatório criado com ${result.fotos_count} foto(s)!`
+                    : 'Relatório criado com sucesso!';
+                this.showSuccessWithMessage(message);
             } else {
                 throw new Error(result.message || 'Erro ao enviar relatório');
             }
@@ -253,6 +404,13 @@ class ReportApp {
     
     showSuccess() {
         const modal = document.getElementById('success-modal');
+        modal.classList.add('active');
+    }
+    
+    showSuccessWithMessage(message) {
+        const modal = document.getElementById('success-modal');
+        const messageEl = modal.querySelector('p');
+        messageEl.textContent = message;
         modal.classList.add('active');
     }
     
@@ -300,15 +458,24 @@ function resetForm() {
         btn.classList.remove('selected');
     });
     
-    // Reseta upload de arquivo
-    const fileUpload = document.querySelector('.file-upload');
-    fileUpload.classList.remove('has-file');
-    const content = fileUpload.querySelector('.file-upload-content');
+    // Reseta upload de arquivos
+    const fileUploadArea = document.querySelector('.file-upload-area');
+    fileUploadArea.classList.remove('has-files');
+    const content = fileUploadArea.querySelector('.file-upload-content');
     content.innerHTML = `
         <i class="fas fa-cloud-upload-alt"></i>
-        <p>Clique para selecionar uma foto ou arraste aqui</p>
-        <small>JPG, PNG, GIF até 10MB</small>
+        <p>Clique para selecionar fotos, arraste aqui ou <strong>cole (Ctrl+V)</strong></p>
+        <small>JPG, PNG, GIF até 10MB cada • Múltiplas fotos permitidas</small>
     `;
+    
+    // Limpar preview
+    document.getElementById('photos-preview').innerHTML = '';
+    
+    // Remover contador de fotos
+    const countElement = fileUploadArea.querySelector('.photos-count');
+    if (countElement) {
+        countElement.remove();
+    }
     
     // Volta para step 1
     window.reportApp.goToStep(1);
