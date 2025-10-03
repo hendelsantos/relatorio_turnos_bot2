@@ -25,6 +25,11 @@ templates = Jinja2Templates(directory="templates")
 # Criar diretório de uploads se não existir
 os.makedirs("static/uploads", exist_ok=True)
 
+@app.get("/health")
+async def health_check():
+    """Health check endpoint para Railway"""
+    return {"status": "healthy", "service": "Sistema de Relatórios por Turnos"}
+
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request):
     """Página inicial com seleção de turno e nome"""
