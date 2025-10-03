@@ -117,21 +117,35 @@
 
                         <div class="form-group">
                             <label for="fotos">
-                                <i class="fas fa-camera"></i>
-                                Fotos (Múltiplas)
+                                <i class="fas fa-images"></i>
+                                Adicionar Fotos
                             </label>
-                            <div class="file-upload-area">
-                                <input type="file" id="fotos" name="fotos" accept="image/*" multiple>
-                                <div class="file-upload-content">
-                                    <i class="fas fa-cloud-upload-alt"></i>
-                                    <p>Clique para selecionar fotos, arraste aqui ou <strong>cole (Ctrl+V)</strong></p>
-                                    <small>JPG, PNG, GIF até 10MB cada • Múltiplas fotos permitidas</small>
-                                </div>
-                                <div class="paste-hint">
+                            
+                            <!-- Área principal para colar -->
+                            <div class="paste-area-main" id="paste-area">
+                                <div class="paste-content">
                                     <i class="fas fa-clipboard"></i>
-                                    <span>Cole imagens copiadas do WhatsApp aqui!</span>
+                                    <h3>Cole suas fotos aqui</h3>
+                                    <p>Copie uma foto do WhatsApp e cole aqui (Ctrl+V)</p>
+                                    <div class="paste-steps">
+                                        <span class="step-item">📱 Copie no WhatsApp</span>
+                                        <span class="step-arrow">→</span>
+                                        <span class="step-item">📋 Cole aqui</span>
+                                    </div>
+                                </div>
+                                
+                                <!-- Botão secundário para arquivo -->
+                                <div class="upload-alternative">
+                                    <button type="button" class="btn-upload-alt" id="btn-browse">
+                                        <i class="fas fa-folder-open"></i>
+                                        Ou escolher da galeria
+                                    </button>
                                 </div>
                             </div>
+                            
+                            <!-- Input file oculto -->
+                            <input type="file" id="fotos" name="fotos" accept="image/*" multiple style="display: none;">
+                            
                             <div class="photos-preview" id="photos-preview"></div>
                         </div>
 

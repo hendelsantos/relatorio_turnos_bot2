@@ -55,27 +55,47 @@ class ReportApp {
     
     setupFileHandling() {
         const fotosInput = document.getElementById('fotos');
-        const fileUploadArea = document.querySelector('.file-upload-area');
+        const pasteArea = document.querySelector('.paste-area-main');
+        const btnBrowse = document.getElementById('btn-browse');
         
-        if (fotosInput && fileUploadArea) {
+        // Botão para abrir seletor de arquivos
+        if (btnBrowse && fotosInput) {
+            btnBrowse.addEventListener('click', () => {
+                fotosInput.click();
+            });
+        }
+        
+        if (fotosInput) {
             // Change event para input file
             fotosInput.addEventListener('change', () => this.handleFileSelect());
-            
-            // Drag and drop
-            fileUploadArea.addEventListener('dragover', (e) => {
+        }
+        
+        if (pasteArea) {
+            // Drag and drop na área de colar
+            pasteArea.addEventListener('dragover', (e) => {
                 e.preventDefault();
-                fileUploadArea.classList.add('dragover');
+                pasteArea.classList.add('dragover');
             });
             
-            fileUploadArea.addEventListener('dragleave', () => {
-                fileUploadArea.classList.remove('dragover');
+            pasteArea.addEventListener('dragleave', () => {
+                pasteArea.classList.remove('dragover');
             });
             
-            fileUploadArea.addEventListener('drop', (e) => {
+            pasteArea.addEventListener('drop', (e) => {
                 e.preventDefault();
-                fileUploadArea.classList.remove('dragover');
+                pasteArea.classList.remove('dragover');
                 this.handleFileDrop(e);
             });
+            
+            // Click na área para focar (melhor experiência de paste)
+            pasteArea.addEventListener('click', () => {
+                pasteArea.focus();
+                // Mostrar dica temporária
+                this.showPasteHint();
+            });
+            
+            // Tornar área focável
+            pasteArea.setAttribute('tabindex', '0');
         }
     }
     
@@ -88,13 +108,8 @@ class ReportApp {
             }
         });
         
-        // Visual feedback quando área está focada
-        const fileUploadArea = document.querySelector('.file-upload-area');
-        if (fileUploadArea) {
-            fileUploadArea.addEventListener('click', () => {
-                fileUploadArea.focus();
-            });
-        }
+        // Não precisamos mais do evento de click na área antiga
+        // A nova interface já tem isso configurado no setupFileHandling
     }
     
     selectTurno(e) {
@@ -228,10 +243,12 @@ class ReportApp {
         if (imageItems.length > 0) {
             e.preventDefault();
             
-            // Visual feedback
-            const fileUploadArea = document.querySelector('.file-upload-area');
-            fileUploadArea.classList.add('pasting');
-            setTimeout(() => fileUploadArea.classList.remove('pasting'), 1000);
+            // Visual feedback na nova área
+            const pasteArea = document.querySelector('.paste-area-main');
+            if (pasteArea) {
+                pasteArea.classList.add('pasting');
+                setTimeout(() => pasteArea.classList.remove('pasting'), 1000);
+            }
             
             // Processar imagens
             imageItems.forEach(item => {
@@ -241,10 +258,26 @@ class ReportApp {
                 }
             });
             
-            this.showAlert('Imagem(ns) colada(s) com sucesso!', 'success');
+            this.showAlert('Imagem(ns) colada(s) com sucesso! 📸', 'success');
         }
     }
     
+    showPasteHint() {
+        // Mostra dica temporária sobre como colar
+        const pasteArea = document.querySelector('.paste-area-main');
+        if (pasteArea) {
+            const originalText = pasteArea.querySelector('h3').textContent;
+            const h3 = pasteArea.querySelector('h3');
+            h3.textContent = '📋 Pressione Ctrl+V para colar!';
+            h3.style.color = 'var(--success-color)';
+            
+            setTimeout(() => {
+                h3.textContent = originalText;
+                h3.style.color = '';
+            }, 2000);
+        }
+    }
+
     addFiles(files) {
         // Validar arquivos
         const validFiles = files.filter(file => {
@@ -307,40 +340,24 @@ class ReportApp {
     }
     
     updateFileUploadStatus() {
-        const fileUploadArea = document.querySelector('.file-upload-area');
-        const content = fileUploadArea.querySelector('.file-upload-content');
+        // Com a nova interface, apenas atualizamos o contador na área de colar
+        const pasteArea = document.querySelector('.paste-area-main');
+        const pasteContent = document.querySelector('.paste-content h3');
         
-        if (this.selectedFiles.length > 0) {
-            fileUploadArea.classList.add('has-files');
-            content.innerHTML = `
-                <i class="fas fa-check-circle"></i>
-                <p><strong>${this.selectedFiles.length} foto(s) selecionada(s)</strong></p>
-                <small>Clique para adicionar mais ou cole novas imagens</small>
-            `;
+        if (this.selectedFiles.length > 0 && pasteContent) {
+            pasteContent.innerHTML = `${this.selectedFiles.length} foto(s) adicionada(s) ✅`;
             
-            // Adicionar contador
-            let countElement = fileUploadArea.querySelector('.photos-count');
-            if (!countElement) {
-                countElement = document.createElement('div');
-                countElement.className = 'photos-count';
-                fileUploadArea.appendChild(countElement);
+            // Adicionar classe de sucesso temporariamente
+            if (pasteArea) {
+                pasteArea.style.borderColor = 'var(--success-color)';
+                pasteArea.style.background = 'linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(16, 185, 129, 0.05))';
             }
+        } else if (pasteContent) {
+            pasteContent.innerHTML = 'Cole suas fotos aqui';
             
-            countElement.innerHTML = `
-                <i class="fas fa-images"></i>
-                <span>${this.selectedFiles.length} foto(s) pronta(s) para envio</span>
-            `;
-        } else {
-            fileUploadArea.classList.remove('has-files');
-            content.innerHTML = `
-                <i class="fas fa-cloud-upload-alt"></i>
-                <p>Clique para selecionar fotos, arraste aqui ou <strong>cole (Ctrl+V)</strong></p>
-                <small>JPG, PNG, GIF até 10MB cada • Múltiplas fotos permitidas</small>
-            `;
-            
-            const countElement = fileUploadArea.querySelector('.photos-count');
-            if (countElement) {
-                countElement.remove();
+            if (pasteArea) {
+                pasteArea.style.borderColor = '';
+                pasteArea.style.background = '';
             }
         }
     }
@@ -458,15 +475,18 @@ function resetForm() {
         btn.classList.remove('selected');
     });
     
-    // Reseta upload de arquivos
-    const fileUploadArea = document.querySelector('.file-upload-area');
-    fileUploadArea.classList.remove('has-files');
-    const content = fileUploadArea.querySelector('.file-upload-content');
-    content.innerHTML = `
-        <i class="fas fa-cloud-upload-alt"></i>
-        <p>Clique para selecionar fotos, arraste aqui ou <strong>cole (Ctrl+V)</strong></p>
-        <small>JPG, PNG, GIF até 10MB cada • Múltiplas fotos permitidas</small>
-    `;
+    // Reseta upload de arquivos na nova interface
+    const pasteArea = document.querySelector('.paste-area-main');
+    const pasteContent = document.querySelector('.paste-content h3');
+    
+    if (pasteArea) {
+        pasteArea.style.borderColor = '';
+        pasteArea.style.background = '';
+    }
+    
+    if (pasteContent) {
+        pasteContent.innerHTML = 'Cole suas fotos aqui';
+    }
     
     // Limpar preview
     document.getElementById('photos-preview').innerHTML = '';
