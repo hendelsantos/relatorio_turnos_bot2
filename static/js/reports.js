@@ -113,8 +113,13 @@ class ReportsApp {
                             ${report.turno_nome}
                         </div>
                     </div>
-                    <div class="report-date" title="${formattedDate}">
-                        ${timeAgo}
+                    <div class="report-actions">
+                        <div class="report-date" title="${formattedDate}">
+                            ${timeAgo}
+                        </div>
+                        <button class="btn-delete" onclick="confirmDelete(${report.id})" title="Excluir relatório">
+                            <i class="fas fa-trash"></i>
+                        </button>
                     </div>
                 </div>
                 <div class="report-content">
@@ -264,6 +269,100 @@ function closePhotoModal() {
     window.reportsApp.closePhotoModal();
 }
 
+function confirmDelete(reportId) {
+    if (confirm('Tem certeza que deseja excluir este relatório?\n\nEsta ação não pode ser desfeita.')) {
+        deleteReport(reportId);
+    }
+}
+
+async function deleteReport(reportId) {
+    try {
+        // Mostrar loading no botão
+        const button = document.querySelector(`[data-id="${reportId}"] .btn-delete`);
+        const originalContent = button.innerHTML;
+        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        button.disabled = true;
+        
+        const response = await fetch(`/api/reports/${reportId}`, {
+            method: 'DELETE'
+        });
+        
+        const result = await response.json();
+        
+        if (response.ok && result.success) {
+            // Remover o card da interface com animação
+            const card = document.querySelector(`[data-id="${reportId}"]`);
+            card.style.transform = 'translateX(-100%)';
+            card.style.opacity = '0';
+            
+            setTimeout(() => {
+                card.remove();
+                // Atualizar estatísticas
+                window.reportsApp.reports = window.reportsApp.reports.filter(r => r.id !== reportId);
+                window.reportsApp.updateStats();
+                
+                // Verificar se não há mais relatórios
+                if (window.reportsApp.reports.length === 0) {
+                    document.getElementById('timeline-empty').style.display = 'flex';
+                }
+            }, 300);
+            
+            // Mostrar mensagem de sucesso
+            showAlert('Relatório excluído com sucesso!', 'success');
+            
+        } else {
+            throw new Error(result.message || 'Erro ao excluir relatório');
+        }
+        
+    } catch (error) {
+        console.error('Erro ao excluir relatório:', error);
+        showAlert('Erro ao excluir relatório. Tente novamente.', 'error');
+        
+        // Restaurar botão
+        const button = document.querySelector(`[data-id="${reportId}"] .btn-delete`);
+        if (button) {
+            button.innerHTML = '<i class="fas fa-trash"></i>';
+            button.disabled = false;
+        }
+    }
+}
+
+function showAlert(message, type = 'info') {
+    // Remove alertas anteriores
+    document.querySelectorAll('.alert').forEach(alert => alert.remove());
+    
+    const alert = document.createElement('div');
+    alert.className = `alert alert-${type}`;
+    alert.innerHTML = `
+        <div class="alert-content">
+            <i class="fas fa-${getAlertIcon(type)}"></i>
+            <span>${message}</span>
+            <button class="alert-close" onclick="this.parentElement.parentElement.remove()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    `;
+    
+    document.body.appendChild(alert);
+    
+    // Remove automaticamente após 5 segundos
+    setTimeout(() => {
+        if (alert.parentElement) {
+            alert.remove();
+        }
+    }, 5000);
+}
+
+function getAlertIcon(type) {
+    const icons = {
+        'success': 'check-circle',
+        'error': 'exclamation-circle',
+        'warning': 'exclamation-triangle',
+        'info': 'info-circle'
+    };
+    return icons[type] || 'info-circle';
+}
+
 // ===== INICIALIZAÇÃO =====
 document.addEventListener('DOMContentLoaded', () => {
     window.reportsApp = new ReportsApp();
@@ -277,7 +376,7 @@ setInterval(() => {
     }
 }, 30000);
 
-// ===== ESTILOS CSS PARA ERROR STATE =====
+// ===== ESTILOS CSS PARA ERROR STATE E ALERTAS =====
 const errorStyles = `
 .error-state {
     display: flex;
@@ -314,9 +413,99 @@ const errorStyles = `
     color: #6b7280;
     margin-bottom: 1.5rem;
 }
+
+.alert {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    z-index: 1000;
+    animation: slideIn 0.3s ease;
+    max-width: 400px;
+    border-left: 4px solid #3b82f6;
+}
+
+.alert-success {
+    border-left-color: #10b981;
+}
+
+.alert-error {
+    border-left-color: #ef4444;
+}
+
+.alert-warning {
+    border-left-color: #f59e0b;
+}
+
+.alert-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+}
+
+.alert-content i {
+    font-size: 18px;
+    color: #3b82f6;
+}
+
+.alert-success .alert-content i {
+    color: #10b981;
+}
+
+.alert-error .alert-content i {
+    color: #ef4444;
+}
+
+.alert-warning .alert-content i {
+    color: #f59e0b;
+}
+
+.alert-content span {
+    flex: 1;
+    font-weight: 500;
+    color: #374151;
+}
+
+.alert-close {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #9ca3af;
+    padding: 4px;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+.alert-close:hover {
+    color: #6b7280;
+    background: #f3f4f6;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.report-card {
+    transition: all 0.3s ease;
+}
+
+.report-card.removing {
+    transform: translateX(-100%);
+    opacity: 0;
+}
 `;
 
-// Adiciona estilos do error state
+// Adiciona estilos do error state e alertas
 const errorStyleSheet = document.createElement('style');
 errorStyleSheet.textContent = errorStyles;
 document.head.appendChild(errorStyleSheet);

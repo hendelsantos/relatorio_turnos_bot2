@@ -235,6 +235,38 @@
     color: var(--gray-500);
 }
 
+.report-actions {
+    display: flex;
+    gap: var(--spacing-2);
+    align-items: center;
+}
+
+.btn-delete {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: transparent;
+    border: 1px solid var(--gray-300);
+    border-radius: var(--border-radius);
+    color: var(--gray-500);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: var(--font-size-sm);
+}
+
+.btn-delete:hover {
+    background: var(--error-color);
+    border-color: var(--error-color);
+    color: var(--white);
+    transform: scale(1.05);
+}
+
+.btn-delete:active {
+    transform: scale(0.95);
+}
+
 .report-content {
     padding: var(--spacing-5);
 }

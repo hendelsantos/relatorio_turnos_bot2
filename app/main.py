@@ -108,6 +108,37 @@ async def get_reports(turno: Optional[int] = None, db: Session = Depends(get_db)
         for report in reports
     ]
 
+@app.delete("/api/reports/{report_id}")
+async def delete_report(report_id: int, db: Session = Depends(get_db)):
+    """Excluir um relatório específico"""
+    
+    # Buscar o relatório
+    report = db.query(Report).filter(Report.id == report_id).first()
+    
+    if not report:
+        return JSONResponse(
+            status_code=404,
+            content={"success": False, "message": "Relatório não encontrado"}
+        )
+    
+    # Remover arquivo de foto se existir
+    if report.foto_url:
+        try:
+            file_path = report.foto_url.lstrip("/")
+            if os.path.exists(file_path):
+                os.remove(file_path)
+        except Exception as e:
+            print(f"Erro ao remover arquivo: {e}")
+    
+    # Excluir do banco
+    db.delete(report)
+    db.commit()
+    
+    return JSONResponse({
+        "success": True,
+        "message": "Relatório excluído com sucesso!"
+    })
+
 @app.get("/api/turnos")
 async def get_turnos():
     """Lista os turnos disponíveis"""
